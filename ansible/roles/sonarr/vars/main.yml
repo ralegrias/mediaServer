@@ -1,0 +1,15 @@
+sonarr_container_name: sonarr
+sonarr_image: linuxserver/sonarr:latest
+sonarr_port: 8989
+sonarr_config_path: /srv/media/sonarr/config
+sonarr_tv_path: /srv/media/tv
+sonarr_download_path: /srv/media/complete
+
+# Environment values
+sonarr_puid: 1000
+sonarr_pgid: 1003
+sonarr_timezone: Europe/Lisbon
+
+# Cloudflare subdomain
+domain_name: rubennice.cc
+

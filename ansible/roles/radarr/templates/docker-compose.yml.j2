@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  radarr:
+    image: {{ radarr_image }}
+    container_name: {{ radarr_container_name }}
+    expose:
+      - "{{ radarr_port }}"
+    environment:
+      - PUID={{ radarr_puid }}
+      - PGID={{ radarr_pgid }}
+      - TZ={{ radarr_timezone }}
+      - VIRTUAL_HOST=radarr.{{ domain_name }}
+    volumes:
+      - {{ radarr_config_path }}:/config
+      - {{ radarr_movies_path }}:/movies
+      - {{ radarr_download_path }}:/downloads
+    networks:
+      - media
+      - proxy
+    restart: unless-stopped
+
+networks:
+  media:
+    driver: bridge
+  proxy:
+    external: true
+

@@ -1,0 +1,15 @@
+radarr_container_name: radarr
+radarr_image: linuxserver/radarr:latest
+radarr_port: 7878
+radarr_config_path: /srv/media/radarr/config
+radarr_movies_path: /srv/media/movies
+radarr_download_path: /srv/media/complete
+
+# Environment values
+radarr_puid: 1000
+radarr_pgid: 1003
+radarr_timezone: Europe/Lisbon
+
+# Cloudflare subdomain
+domain_name: rubennice.cc
+

@@ -1,0 +1,8 @@
+prowlarr_image: lscr.io/linuxserver/prowlarr:latest
+prowlarr_container_name: prowlarr
+prowlarr_puid: 1000
+prowlarr_pgid: 1003
+prowlarr_timezone: Europe/Lisbon
+prowlarr_config_path: /srv/media/prowlarr/config
+domain_name: rubennice.cc
+

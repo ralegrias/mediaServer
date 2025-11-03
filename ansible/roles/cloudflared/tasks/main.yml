@@ -1,0 +1,102 @@
+---
+- name: Ensure cloudflared config directory exists
+  file:
+    path: /srv/cloudflared
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Pull Cloudflare tunnel Docker image
+  community.docker.docker_image:
+    name: cloudflare/cloudflared:latest
+    source: pull
+
+- name: Check for existing cert.pem
+  stat:
+    path: /srv/cloudflared/cert.pem
+  register: tunnel_cert
+
+- name: Fail if no cert.pem exists
+  fail:
+    msg: "Please run 'docker run -it --rm -u root -v /srv/cloudflared:/root/.cloudflared cloudflare/cloudflared:latest tunnel login' first."
+  when: not tunnel_cert.stat.exists
+
+- name: Temporarily fix cert.pem permissions for container
+  file:
+    path: /srv/cloudflared/cert.pem
+    mode: '0644'
+
+- name: Check if any tunnel JSON exists
+  shell: "ls /srv/cloudflared/*.json 2>/dev/null | wc -l"
+  register: tunnel_json_count
+  changed_when: false
+
+- name: Create tunnel if none exist
+  command: >
+    docker run --rm -u root -v /srv/cloudflared:/etc/cloudflared cloudflare/cloudflared:latest tunnel create nginx-tunnel
+  when: tunnel_json_count.stdout|int == 0
+
+- name: Discover tunnel credentials file
+  shell: ls /srv/cloudflared/*.json | head -n1 | xargs basename
+  register: tunnel_id
+  changed_when: false
+
+- name: Write cloudflared config.yml
+  copy:
+    dest: /srv/cloudflared/config.yml
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      tunnel: nginx-tunnel
+      credentials-file: /etc/cloudflared/{{ tunnel_id.stdout }}
+      ingress:
+        - hostname: sonarr.rubennice.cc
+          service: http://nginx-proxy:80
+        - hostname: radarr.rubennice.cc
+          service: http://nginx-proxy:80
+        - hostname: bazarr.rubennice.cc
+          service: http://nginx-proxy:80
+        - hostname: prowlarr.rubennice.cc
+          service: http://nginx-proxy:80
+        - hostname: qbittorrent.rubennice.cc
+          service: http://nginx-proxy:80
+        - hostname: grafana.rubennice.cc
+          service: http://nginx-proxy:80
+        - service: http_status:404
+
+- name: Create DNS routes for all subdomains
+  loop:
+    - sonarr.rubennice.cc
+    - radarr.rubennice.cc
+    - bazarr.rubennice.cc
+    - prowlarr.rubennice.cc
+    - qbittorrent.rubennice.cc
+    - grafana.rubennice.cc
+  command: >
+    docker run --rm -u root -v /srv/cloudflared:/etc/cloudflared cloudflare/cloudflared:latest tunnel route dns nginx-tunnel {{ item }}
+  register: dns_routes
+  changed_when: "'Created' in dns_routes.stdout or 'Updated' in dns_routes.stdout"
+
+- name: Ensure Docker network 'proxy' exists
+  community.docker.docker_network:
+    name: proxy
+    state: present
+
+- name: Run cloudflared tunnel container persistently
+  community.docker.docker_container:
+    name: cloudflared
+    image: cloudflare/cloudflared:latest
+    restart_policy: unless-stopped
+    command: tunnel run
+    volumes:
+      - /srv/cloudflared:/etc/cloudflared
+    networks:
+      - name: proxy
+
+- name: Restore cert.pem permissions
+  file:
+    path: /srv/cloudflared/cert.pem
+    mode: '0600'
+

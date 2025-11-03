@@ -1,0 +1,16 @@
+bazarr_container_name: bazarr
+bazarr_image: linuxserver/bazarr:latest
+bazarr_port: 6767
+bazarr_config_path: /srv/media/bazarr/config
+bazarr_tv_path: /srv/media/tv
+bazarr_movies_path: /srv/media/movies
+bazarr_download_path: /srv/media/complete
+
+# Environment values
+bazarr_puid: 1000
+bazarr_pgid: 1003
+bazarr_timezone: Europe/Lisbon
+
+# Cloudflare subdomain
+domain_name: rubennice.cc
+

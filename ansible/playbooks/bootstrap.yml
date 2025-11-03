@@ -1,0 +1,129 @@
+- name: Setup SSH access on fresh Raspberry Pi
+  hosts: mediaPi
+  gather_facts: false
+  become: false
+  vars:
+    ansible_ssh_user: "{{ ansible_user }}"   # or "pi" if using Raspberry Pi OS
+    ansible_password: "Nempenses6423!"
+  tasks:
+    - name: Add deploy key for rubennice
+      authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', '~/.ssh/pi_deploy.pub') }}"
+
+- name: Bootstrap Raspberry Pi for media server
+  hosts: mediaPi
+  become: true
+  vars:
+    media_base: /srv/media
+    media_dirs:
+      - config
+      - downloads
+      - incomplete
+      - complete
+      - media
+  tasks:
+    - name: Ensure apt cache updated
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+      register: upgrade_result
+
+    - name: Install prerequisites
+      apt:
+        name: [ca-certificates, curl, gnupg, lsb-release, apt-transport-https]
+        state: present
+
+    - name: Create keyrings dir for docker
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Docker GPG
+      become: true
+      ansible.builtin.shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+
+    - name: Add Docker repo
+      ansible.builtin.shell: |
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | tee /etc/apt/sources.list.d/docker.list
+      args:
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Install docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure docker service enabled
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Create media directory structure
+      file:
+        path: "{{ media_base }}/{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0775'
+      loop: "{{ media_dirs }}"
+
+    - name: Create config subfolders
+      file:
+        path: "{{ media_base }}/config/{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop:
+        - sonarr
+        - radarr
+        - qbittorrent
+        - prowlarr
+        - bazarr
+        - nginx
+        - syncthing
+
+    - name: Ensure Python3 installed
+      raw: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          apt-get update -y && apt-get install -y python3
+        fi
+      changed_when: false
+
+    - name: Ensure docker service enabled
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Ensure user is in docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      register: docker_group_result
+
+    - name: Reboot the system to apply changes
+      reboot:
+        msg: "Rebooting Raspberry Pi to apply updates and group changes"
+        pre_reboot_delay: 5
+        post_reboot_delay: 15
+        reboot_timeout: 600
+      when: docker_group_result.changed or upgrade_result.changed

@@ -1,0 +1,6 @@
+- name: Deploy Nginx
+  hosts: mediaPi
+  become: true
+  roles:
+    - nginx
+

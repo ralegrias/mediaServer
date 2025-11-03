@@ -1,0 +1,6 @@
+---
+- name: Deploy QBittorrent
+  hosts: mediaPi
+  become: true
+  roles:
+    - qbittorrent

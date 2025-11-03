@@ -1,0 +1,6 @@
+---
+- name: Deploy Radarr
+  hosts: mediaPi
+  become: true
+  roles:
+    - radarr

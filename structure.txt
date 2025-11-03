@@ -1,0 +1,82 @@
+.
+├── ansible
+│   ├── inventories
+│   │   └── production
+│   │       └── host.yml
+│   ├── playbooks
+│   │   ├── bazarr.yml
+│   │   ├── bootstrap.yml
+│   │   ├── cloudflared.yml
+│   │   ├── flaresolverr.yml
+│   │   ├── monitoring.yml
+│   │   ├── nginx.yml
+│   │   ├── qbittorrent.yml
+│   │   ├── radarr.yml
+│   │   └── sonarr.yml
+│   └── roles
+│       ├── bazarr
+│       │   ├── tasks
+│       │   │   └── main.yml
+│       │   ├── templates
+│       │   │   └── docker-compose.yml.j2
+│       │   └── vars
+│       │       └── main.yml
+│       ├── cloudflared
+│       │   └── tasks
+│       │       └── main.yml
+│       ├── flaresolverr
+│       │   ├── tasks
+│       │   │   └── main.yml
+│       │   ├── templates
+│       │   │   └── docker-compose.yml.j2
+│       │   └── vars
+│       │       └── main.yml
+│       ├── monitoring
+│       │   ├── files
+│       │   │   └── grafana
+│       │   │       ├── dashboards
+│       │   │       │   ├── docker_cadvisor.json
+│       │   │       │   └── node_exporter.json
+│       │   │       └── provisioning
+│       │   │           ├── dashboards
+│       │   │           │   └── dashboards.yml
+│       │   │           └── datasources
+│       │   │               └── prometheus.yml
+│       │   ├── tasks
+│       │   │   └── main.yml
+│       │   ├── templates
+│       │   │   └── docker-compose.yml.j2
+│       │   └── vars
+│       │       └── main.yml
+│       ├── nginx
+│       │   ├── tasks
+│       │   │   └── main.yml
+│       │   ├── templates
+│       │   │   └── docker-compose.yml.j2
+│       │   └── vars
+│       │       └── main.yml
+│       ├── qbittorrent
+│       │   ├── tasks
+│       │   │   └── main.yml
+│       │   ├── templates
+│       │   │   └── docker-compose.yml.j2
+│       │   └── vars
+│       │       └── main.yml
+│       ├── radarr
+│       │   ├── tasks
+│       │   │   └── main.yml
+│       │   ├── templates
+│       │   │   └── docker-compose.yml.j2
+│       │   └── vars
+│       │       └── main.yml
+│       └── sonarr
+│           ├── tasks
+│           │   └── main.yml
+│           ├── templates
+│           │   └── docker-compose.yml.j2
+│           └── vars
+│               └── main.yml
+├── ansible.cfg
+└── structure.txt
+
+42 directories, 38 files

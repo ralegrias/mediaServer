@@ -1,0 +1,18 @@
+qbittorrent_container_name: qbittorrent
+qbittorrent_image: lscr.io/linuxserver/qbittorrent:latest
+qbittorrent_port: 8080
+qbittorrent_config_path: /srv/media/qbittorrent/config
+qbittorrent_download_path: /srv/media/complete
+
+# Environment
+qbittorrent_puid: 1000
+qbittorrent_pgid: 1003
+qbittorrent_timezone: Europe/Lisbon
+
+# Cloudflare / nginx
+domain_name: rubennice.cc
+
+# WebUI credentials
+qbittorrent_webui_username: rubennice
+qbittorrent_webui_pbkdf2: '@ByteArray(SSBwiF2PV0MqqThTdyaFLQ==:SjhRKF/RjnekV3gJcB+2hMllGdeXmnUK3ZScCBj6eqP0uI8fqqyNjsTor7bdUVsmaQ9lFdlqG+u/IonVqI0rgQ==)'
+

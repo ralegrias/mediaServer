@@ -1,0 +1,6 @@
+---
+- name: Deploy Prowlarr
+  hosts: mediaPi
+  become: true
+  roles:
+    - prowlarr

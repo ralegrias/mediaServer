@@ -1,0 +1,73 @@
+# =============================
+# Python cache & artifacts
+# =============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.eggs/
+
+# =============================
+# Ansible junk
+# =============================
+*.retry
+*.backup
+*.swp
+*.swo
+*.tmp
+
+# =============================
+# Environment & secrets
+# =============================
+*.env
+ansible/vars/*.yml
+!ansible/vars/example.yml
+*.vault  # if you use Ansible Vault
+
+# =============================
+# SSH keys
+# =============================
+*.pem
+*.key
+*.pub
+id_rsa
+id_rsa.pub
+
+# =============================
+# Logs and temporary files
+# =============================
+*.log
+*.bak
+*.tmp
+*.old
+*.swp
+*.swo
+.DS_Store       # macOS
+Thumbs.db       # Windows
+
+# =============================
+# Docker and media
+# =============================
+**/data/
+**/volumes/
+**/downloads/
+**/cache/
+**/config/
+**/incomplete/
+**/complete/
+
+# =============================
+# IDE/editor
+# =============================
+.vscode/
+.idea/
+*.code-workspace
+*.iml
+
+# =============================
+# Other
+# =============================
+*.db
+*.sqlite
+

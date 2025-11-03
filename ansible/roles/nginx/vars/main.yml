@@ -1,0 +1,3 @@
+nginx_proxy_dir: /srv/media/nginx-proxy
+domain_name: rubennice.cc
+

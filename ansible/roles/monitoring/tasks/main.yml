@@ -1,0 +1,87 @@
+- name: Ensure Grafana config directory exists
+  file:
+    path: "{{ grafana_config_path }}"
+    state: directory
+    owner: "{{ grafana_puid }}"
+    group: "{{ grafana_pgid }}"
+    mode: '0755'
+
+- name: Ensure Prometheus config directory exists
+  file:
+    path: "{{ prometheus_config_path }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: '0755'
+
+- name: Create Grafana provisioning directories
+  file:
+    path: "{{ grafana_config_path }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - provisioning/datasources
+    - provisioning/dashboards
+    - dashboards
+
+- name: Copy Grafana provisioning files
+  copy:
+    src: "files/grafana/{{ item }}"
+    dest: "{{ grafana_config_path }}/{{ item }}"
+    mode: '0644'
+  loop:
+    - provisioning/datasources/prometheus.yml
+    - provisioning/dashboards/dashboards.yml
+    - dashboards/docker_cadvisor.json
+    - dashboards/node_exporter.json
+
+- name: Fix permissions for Grafana directories
+  file:
+    path: "{{ grafana_config_path }}"
+    state: directory
+    recurse: yes
+    owner: "{{ grafana_puid }}"
+    group: "{{ grafana_pgid }}"
+    mode: '0755'
+
+# NEW TASK: Create Prometheus configuration file
+- name: Copy Prometheus configuration file
+  copy:
+    dest: "{{ prometheus_config_path }}/prometheus.yml"
+    content: |
+      global:
+        scrape_interval: 15s
+
+      scrape_configs:
+        - job_name: 'prometheus'
+          static_configs:
+            - targets: ['localhost:9090']
+
+        - job_name: 'node_exporter'
+          static_configs:
+            - targets: ['node_exporter:9100']
+
+        - job_name: 'cadvisor'
+          static_configs:
+            - targets: ['cadvisor:8080']
+    owner: 1000
+    group: 1000
+    mode: '0644'
+
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
+    update_cache: yes
+
+- name: Deploy monitoring docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: /srv/media/monitoring/docker-compose.yml
+    owner: rubennice
+    group: rubennice
+    mode: '0644'
+
+- name: Start monitoring stack
+  command: docker compose -f /srv/media/monitoring/docker-compose.yml up -d
+

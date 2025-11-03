@@ -1,0 +1,9 @@
+all:
+  children:
+    media:
+      hosts:
+        mediaPi:
+          ansible_host: 192.168.1.74
+          ansible_user: rubennice
+          ansible_ssh_private_key_file: ~/.ssh/pi_deploy
+          ansible_python_interpreter: /usr/bin/python3

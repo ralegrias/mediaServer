@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  {{ grafana_container_name }}:
+    image: {{ grafana_image }}
+    container_name: {{ grafana_container_name }}
+    environment:
+      - PUID={{ grafana_puid }}
+      - PGID={{ grafana_pgid }}
+      - TZ=Europe/Lisbon
+      - GF_SECURITY_ADMIN_USER={{ grafana_admin_user }}
+      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+      - GF_SERVER_HTTP_PORT={{ grafana_port }}
+      - GF_SERVER_PROTOCOL=http
+      - GF_SERVER_ROOT_URL=https://{{ grafana_hostname }}
+      - VIRTUAL_HOST={{ grafana_hostname }}
+      - VIRTUAL_PORT={{ grafana_port }}
+    volumes:
+      - {{ grafana_config_path }}:/var/lib/grafana
+      - {{ grafana_config_path }}/provisioning:/etc/grafana/provisioning
+    networks:
+      - {{ monitoring_network }}
+      - {{ proxy_network }}
+    restart: unless-stopped
+
+  {{ prometheus_container_name }}:
+    image: {{ prometheus_image }}
+    container_name: {{ prometheus_container_name }}
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - {{ prometheus_config_path }}:/etc/prometheus
+    ports:
+      - "{{ prometheus_port }}:9090"
+    networks:
+      - {{ monitoring_network }}
+    restart: unless-stopped
+
+  {{ node_exporter_container_name }}:
+    image: {{ node_exporter_image }}
+    container_name: {{ node_exporter_container_name }}
+    pid: "host"
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "{{ node_exporter_port }}:9100"
+    networks:
+      - {{ monitoring_network }}
+    restart: unless-stopped
+
+  {{ cadvisor_container_name }}:
+    image: {{ cadvisor_image }}
+    container_name: {{ cadvisor_container_name }}
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - {{ monitoring_network }}
+    restart: unless-stopped
+
+networks:
+  {{ monitoring_network }}:
+    driver: bridge
+  {{ proxy_network }}:
+    external: true
+

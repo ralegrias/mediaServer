@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  sonarr:
+    image: {{ sonarr_image }}
+    container_name: {{ sonarr_container_name }}
+    expose:
+      - "{{ sonarr_port }}"
+    environment:
+      - PUID={{ sonarr_puid }}
+      - PGID={{ sonarr_pgid }}
+      - TZ={{ sonarr_timezone }}
+      - VIRTUAL_HOST=sonarr.rubennice.cc
+    volumes:
+      - {{ sonarr_config_path }}:/config
+      - {{ sonarr_tv_path }}:/tv
+      - {{ sonarr_download_path }}:/downloads
+    networks:
+      - media
+      - proxy
+    restart: unless-stopped
+
+networks:
+  media:
+    driver: bridge
+  proxy:
+    external: true
+

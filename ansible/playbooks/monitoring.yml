@@ -1,0 +1,5 @@
+- name: Deploy Monitoring Stack
+  hosts: mediaPi
+  become: true
+  roles:
+    - monitoring

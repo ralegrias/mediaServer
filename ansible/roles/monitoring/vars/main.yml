@@ -1,0 +1,33 @@
+# Cloudflare / proxy
+domain_name: rubennice.cc
+grafana_hostname: grafana.rubennice.cc
+
+# Grafana
+grafana_container_name: grafana
+grafana_image: grafana/grafana:latest
+grafana_port: 3000
+grafana_config_path: /srv/media/monitoring/grafana
+grafana_puid: 472
+grafana_pgid: 472
+grafana_admin_user: rubennice
+grafana_admin_password: Nempenses6423!
+
+# Prometheus
+prometheus_container_name: prometheus
+prometheus_image: prom/prometheus:latest
+prometheus_port: 9090
+prometheus_config_path: /srv/media/monitoring/prometheus
+
+# Node exporter
+node_exporter_container_name: node_exporter
+node_exporter_image: quay.io/prometheus/node-exporter:latest
+node_exporter_port: 9100
+
+# cAdvisor
+cadvisor_container_name: cadvisor
+cadvisor_image: gcr.io/cadvisor/cadvisor-arm64:v0.52.0
+
+# Networks
+monitoring_network: monitoring
+proxy_network: proxy
+

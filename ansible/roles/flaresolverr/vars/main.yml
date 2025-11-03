@@ -1,0 +1,13 @@
+# FlareSolverr container settings
+flaresolverr_container_name: flaresolverr
+flaresolverr_image: ghcr.io/flaresolverr/flaresolverr:latest
+flaresolverr_log_level: info
+flaresolverr_log_html: "false"
+flaresolverr_timezone: Europe/Lisbon
+flaresolverr_port: 8191
+flaresolverr_config_path: /srv/media/flaresolverr
+
+# Cloudflare / nginx
+domain_name: rubennice.cc
+media_user: rubennice
+

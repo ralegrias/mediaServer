@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  {{ flaresolverr_container_name }}:
+    image: {{ flaresolverr_image }}
+    container_name: {{ flaresolverr_container_name }}
+    environment:
+      - LOG_LEVEL={{ flaresolverr_log_level }}
+      - LOG_HTML={{ flaresolverr_log_html }}
+      - TZ={{ flaresolverr_timezone }}
+      - VIRTUAL_HOST={{ flaresolverr_container_name }}.{{ domain_name }}
+      - VIRTUAL_PORT={{ flaresolverr_port }}
+    networks:
+      - proxy
+      - media
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
+  media:
+    driver: bridge
+

@@ -1,0 +1,25 @@
+---
+- name: Ensure FlareSolverr config directory exists
+  ansible.builtin.file:
+    path: "{{ flaresolverr_config_path }}"
+    state: directory
+    owner: "{{ media_user | default('rubennice') }}"
+    group: "{{ media_user | default('rubennice') }}"
+    mode: '0755'
+
+- name: Ensure Docker Compose is installed
+  ansible.builtin.apt:
+    name: docker-compose
+    state: present
+    update_cache: yes
+
+- name: Deploy FlareSolverr docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ flaresolverr_config_path }}/docker-compose.yml"
+
+- name: Start FlareSolverr stack
+  ansible.builtin.command:
+    cmd: docker compose -f {{ flaresolverr_config_path }}/docker-compose.yml up -d --remove-orphans
+
+

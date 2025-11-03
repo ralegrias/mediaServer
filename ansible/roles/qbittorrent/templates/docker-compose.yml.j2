@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  {{ qbittorrent_container_name }}:
+    image: {{ qbittorrent_image }}
+    container_name: {{ qbittorrent_container_name }}
+    environment:
+      - PUID={{ qbittorrent_puid }}
+      - PGID={{ qbittorrent_pgid }}
+      - TZ={{ qbittorrent_timezone }}
+      - WEBUI_PORT={{ qbittorrent_port }}
+      - WEBUI_CONFIRM_LEGAL_NOTICE=true
+      - WEBUI_AUTHENTICATION=false   
+      - WEBUI_AUTH_DISABLED=true
+      - VIRTUAL_HOST={{ qbittorrent_container_name }}.{{ domain_name }}
+      - VIRTUAL_PORT={{ qbittorrent_port }}
+    volumes:
+      - {{ qbittorrent_config_path }}:/config:rw
+      - {{ qbittorrent_download_path }}:/downloads:rw
+    networks:
+      - proxy
+      - media
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
+  media:
+    driver: bridge
+

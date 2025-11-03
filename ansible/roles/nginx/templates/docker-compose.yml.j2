@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:latest
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"   # Expose only HTTP internally for cloudflared
+    volumes:
+      - /srv/nginx/conf.d:/etc/nginx/conf.d
+      - /srv/nginx/vhost.d:/etc/nginx/vhost.d
+      - /srv/nginx/html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+

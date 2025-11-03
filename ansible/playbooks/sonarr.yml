@@ -1,0 +1,6 @@
+---
+- name: Deploy Sonarr
+  hosts: mediaPi
+  become: true
+  roles:
+    - sonarr

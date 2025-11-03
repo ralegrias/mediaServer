@@ -1,0 +1,6 @@
+---
+- name: Deploy CloudFlared
+  hosts: mediaPi
+  become: true
+  roles:
+    - cloudflared

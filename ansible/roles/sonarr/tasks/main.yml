@@ -1,0 +1,82 @@
+---
+- name: Ensure Sonarr config directory exists
+  file:
+    path: "{{ sonarr_config_path }}"
+    state: directory
+    owner: rubennice
+    group: rubennice
+    mode: '0755'
+
+- name: Ensure TV storage directory exists
+  file:
+    path: "{{ sonarr_tv_path }}"
+    state: directory
+    owner: rubennice
+    group: rubennice
+    mode: '0755'
+
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
+    update_cache: yes
+
+- name: Deploy Sonarr docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: /srv/media/sonarr/docker-compose.yml
+
+- name: Stop Sonarr container if running
+  command: docker-compose -f /srv/media/sonarr/docker-compose.yml down
+  ignore_errors: yes
+
+- name: Start Sonarr container
+  command: docker-compose -f /srv/media/sonarr/docker-compose.yml up -d
+
+- name: Wait 20 seconds for Sonarr to initialize
+  wait_for:
+    timeout: 20
+
+- name: Ensure config.xml exists
+  wait_for:
+    path: "{{ sonarr_config_path }}/config.xml"
+    timeout: 60
+
+- name: Stop Sonarr container
+  command: docker-compose -f /srv/media/sonarr/docker-compose.yml down
+
+- name: Set Sonarr auth mode to Basic
+  replace:
+    path: "{{ sonarr_config_path }}/config.xml"
+    regexp: '<AuthenticationMethod>.*</AuthenticationMethod>'
+    replace: '<AuthenticationMethod>Basic</AuthenticationMethod>'
+
+- name: Disable auth for local addresses
+  replace:
+    path: "{{ sonarr_config_path }}/config.xml"
+    regexp: '<AuthenticationRequired>.*</AuthenticationRequired>'
+    replace: '<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>'
+
+- name: Start Sonarr container again
+  command: docker-compose -f /srv/media/sonarr/docker-compose.yml up -d
+
+- name: Ensure Sonarr server block exists
+  copy:
+    dest: /srv/nginx/conf.d/sonarr.conf
+    content: |
+      server {
+          listen 80;
+          server_name sonarr.rubennice.cc;
+
+          location / {
+              proxy_pass http://sonarr:8989;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+    owner: root
+    group: root
+    mode: '0644'
+

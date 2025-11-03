@@ -1,0 +1,62 @@
+---
+- name: Ensure Bazarr config directory exists
+  file:
+    path: "{{ bazarr_config_path }}"
+    state: directory
+    owner: rubennice
+    group: rubennice
+    mode: '0755'
+
+- name: Ensure TV storage directory exists
+  file:
+    path: "{{ bazarr_tv_path }}"
+    state: directory
+    owner: rubennice
+    group: rubennice
+    mode: '0755'
+
+- name: Ensure Movies storage directory exists
+  file:
+    path: "{{ bazarr_movies_path }}"
+    state: directory
+    owner: rubennice
+    group: rubennice
+    mode: '0755'
+
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
+    update_cache: yes
+
+- name: Deploy Bazarr docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: /srv/media/bazarr/docker-compose.yml
+
+- name: Stop Bazarr container if running
+  command: docker-compose -f /srv/media/bazarr/docker-compose.yml down
+  ignore_errors: yes
+
+- name: Start Bazarr container
+  command: docker-compose -f /srv/media/bazarr/docker-compose.yml up -d
+
+- name: Ensure Bazarr server block exists
+  copy:
+    dest: /srv/nginx/conf.d/bazarr.conf
+    content: |
+      server {
+          listen 80;
+          server_name bazarr.{{ domain_name }};
+
+          location / {
+              proxy_pass http://bazarr:6767;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+    owner: root
+    group: root
+    mode: '0644'

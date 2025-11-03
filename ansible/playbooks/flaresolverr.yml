@@ -1,0 +1,6 @@
+---
+- name: Deploy FlareSolverr
+  hosts: mediaPi
+  become: true
+  roles:
+    - flaresolverr

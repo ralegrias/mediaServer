@@ -1,0 +1,159 @@
+{
+  "id": null,
+  "uid": "docker_cadvisor",
+  "title": "Container Overview",
+  "tags": ["docker", "cadvisor", "containers"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "panels": [
+    {
+      "title": "Container State",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "count by(container_name, state) (container_last_seen{})",
+          "legendFormat": "{{container_name}} - {{state}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"x":0,"y":0,"w":24,"h":6}
+    },
+    {
+      "title": "Container Restart Count",
+      "type": "barchart",
+      "targets": [
+        {
+          "expr": "sum by(container_name)(container_restart_count{})",
+          "legendFormat": "{{container_name}}",
+          "refId": "B"
+        }
+      ],
+      "gridPos": {"x":0,"y":6,"w":12,"h":6}
+    },
+    {
+      "title": "Container Uptime",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "time() - container_start_time_seconds{}",
+          "legendFormat": "{{container_name}}",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {"x":12,"y":6,"w":12,"h":6}
+    },
+    {
+      "title": "Memory Usage (MB)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum by(container_name)(container_memory_usage_bytes{}) / 1024 / 1024",
+          "legendFormat": "{{container_name}}",
+          "refId": "D"
+        }
+      ],
+      "gridPos": {"x":0,"y":12,"w":12,"h":6}
+    },
+    {
+      "title": "Memory Usage %",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum by(container_name)(container_memory_usage_bytes{} / container_spec_memory_limit_bytes{} * 100)",
+          "legendFormat": "{{container_name}}",
+          "refId": "E"
+        }
+      ],
+      "gridPos": {"x":12,"y":12,"w":12,"h":6}
+    },
+    {
+      "title": "Top 5 Memory-Hungry Containers",
+      "type": "barchart",
+      "targets": [
+        {
+          "expr": "topk(5, sum by(container_name)(container_memory_usage_bytes{}))",
+          "legendFormat": "{{container_name}}",
+          "refId": "F"
+        }
+      ],
+      "gridPos": {"x":0,"y":18,"w":12,"h":6}
+    },
+    {
+      "title": "Read Bytes/sec",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(container_fs_reads_bytes_total[1m])",
+          "legendFormat": "{{container_name}}",
+          "refId": "G"
+        }
+      ],
+      "gridPos": {"x":12,"y":18,"w":12,"h":6}
+    },
+    {
+      "title": "Write Bytes/sec",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(container_fs_writes_bytes_total[1m])",
+          "legendFormat": "{{container_name}}",
+          "refId": "H"
+        }
+      ],
+      "gridPos": {"x":0,"y":24,"w":12,"h":6}
+    },
+    {
+      "title": "Top 5 CPU-Hungry Containers",
+      "type": "barchart",
+      "targets": [
+        {
+          "expr": "topk(5, sum by(container_name)(rate(container_cpu_user_seconds_total[1m]) * 100))",
+          "legendFormat": "{{container_name}}",
+          "refId": "I"
+        }
+      ],
+      "gridPos": {"x":12,"y":24,"w":12,"h":6}
+    },
+    {
+      "title": "Average CPU Load",
+      "type": "singlestat",
+      "targets": [
+        {
+          "expr": "avg(rate(container_cpu_user_seconds_total[1m]) * 100)",
+          "refId": "J"
+        }
+      ],
+      "gridPos": {"x":0,"y":30,"w":12,"h":6}
+    },
+    {
+      "title": "Total Container Count",
+      "type": "singlestat",
+      "targets": [
+        {
+          "expr": "count(container_last_seen{})",
+          "refId": "K"
+        }
+      ],
+      "gridPos": {"x":12,"y":30,"w":12,"h":6}
+    },
+    {
+      "title": "Network Throughput (Rx/Tx)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(container_network_receive_bytes_total[1m])",
+          "legendFormat": "{{container_name}} - RX",
+          "refId": "L"
+        },
+        {
+          "expr": "rate(container_network_transmit_bytes_total[1m])",
+          "legendFormat": "{{container_name}} - TX",
+          "refId": "M"
+        }
+      ],
+      "gridPos": {"x":0,"y":36,"w":24,"h":6}
+    }
+  ]
+}
+

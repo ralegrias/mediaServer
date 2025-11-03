@@ -1,0 +1,58 @@
+---
+- name: Ensure qBittorrent config directory exists
+  ansible.builtin.file:
+    path: "{{ qbittorrent_config_path }}"
+    state: directory
+    owner: "{{ qbittorrent_puid }}"
+    group: "{{ qbittorrent_pgid }}"
+    mode: '0755'
+
+- name: Remove old qBittorrent.conf to ensure a clean configuration
+  ansible.builtin.file:
+    path: "{{ qbittorrent_config_path }}/qBittorrent.conf"
+    state: absent
+
+- name: Create minimal qBittorrent.conf
+  ansible.builtin.copy:
+    dest: "{{ qbittorrent_config_path }}/qBittorrent.conf"
+    owner: "{{ qbittorrent_puid }}"
+    group: "{{ qbittorrent_pgid }}"
+    mode: '0644'
+    content: |
+      [Preferences]
+      WebUI\Enabled=true
+      WebUI\HTTPS\Enabled=false
+      WebUI\CSRFProtection=false
+      WebUI\Password_PBKDF2=@ByteArray(@Invalid@)
+      WebUI\Username=admin
+      WebUI\AuthSubnetWhitelist=100.64.0.0/10,127.0.0.1,172.16.0.0/12,192.168.0.0/16
+      WebUI\AuthSubnetWhitelistEnabled=true
+      WebUI\LocalHostAuth=false
+      WebUI\Address=*
+      WebUI\ServerDomains=*
+      WebUI\Port={{ qbittorrent_port }}
+      Downloads\SavePath={{ qbittorrent_download_path }}
+      Downloads\TempPath={{ qbittorrent_download_path }}/incomplete
+      Connection\PortRangeMin=6881
+      Connection\UPnP=false
+      Session\QueueingSystemEnabled=true
+
+- name: Ensure Docker Compose is installed
+  ansible.builtin.apt:
+    name: docker-compose
+    state: present
+    update_cache: yes
+
+- name: Deploy qBittorrent docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /srv/media/qbittorrent/docker-compose.yml
+
+- name: Start qBittorrent stack
+  ansible.builtin.command:
+    cmd: docker compose -f /srv/media/qbittorrent/docker-compose.yml up -d --remove-orphans
+
+- name: Restart qBittorrent container
+  ansible.builtin.command:
+    cmd: docker compose -f /srv/media/qbittorrent/docker-compose.yml restart qbittorrent
+

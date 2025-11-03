@@ -1,0 +1,6 @@
+---
+- name: Deploy Bazarr
+  hosts: mediaPi
+  become: true
+  roles:
+    - bazarr

@@ -1,0 +1,86 @@
+---
+- name: Ensure Prowlarr config directory exists
+  file:
+    path: "{{ prowlarr_config_path }}"
+    state: directory
+    owner: rubennice
+    group: rubennice
+    mode: '0755'
+
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
+    update_cache: yes
+
+- name: Deploy Prowlarr docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: /srv/media/prowlarr/docker-compose.yml
+
+- name: Stop Prowlarr container if running
+  command: docker-compose -f /srv/media/prowlarr/docker-compose.yml down
+  ignore_errors: yes
+
+- name: Start Prowlarr container
+  command: docker-compose -f /srv/media/prowlarr/docker-compose.yml up -d
+
+- name: Wait 20 seconds for Prowlarr to initialize
+  wait_for:
+    timeout: 20
+
+- name: Ensure config.xml exists
+  wait_for:
+    path: "{{ prowlarr_config_path }}/config.xml"
+    timeout: 60
+
+- name: Stop Prowlarr container before config edits
+  command: docker-compose -f /srv/media/prowlarr/docker-compose.yml down
+
+- name: Set Prowlarr authentication username
+  replace:
+    path: "{{ prowlarr_config_path }}/config.xml"
+    regexp: '<Username>.*</Username>'
+    replace: '<Username>Rubennice</Username>'
+
+- name: Set Prowlarr authentication password
+  replace:
+    path: "{{ prowlarr_config_path }}/config.xml"
+    regexp: '<Password>.*</Password>'
+    replace: '<Password>Rubennice</Password>'
+
+- name: Set Prowlarr authentication method to Forms
+  replace:
+    path: "{{ prowlarr_config_path }}/config.xml"
+    regexp: '<AuthenticationMethod>.*</AuthenticationMethod>'
+    replace: '<AuthenticationMethod>Forms</AuthenticationMethod>'
+
+- name: Disable auth for local addresses
+  replace:
+    path: "{{ prowlarr_config_path }}/config.xml"
+    regexp: '<AuthenticationRequired>.*</AuthenticationRequired>'
+    replace: '<AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>'
+
+- name: Start Prowlarr container again
+  command: docker-compose -f /srv/media/prowlarr/docker-compose.yml up -d
+
+- name: Ensure Prowlarr Nginx server block exists
+  copy:
+    dest: /srv/nginx/conf.d/prowlarr.conf
+    content: |
+      server {
+          listen 80;
+          server_name prowlarr.{{ domain_name }};
+
+          location / {
+              proxy_pass http://prowlarr:9696;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+    owner: root
+    group: root
+    mode: '0644'
+
